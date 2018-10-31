@@ -1,0 +1,107 @@
+<html>
+<head>
+<script src="fortress.js"></script>
+<script src="ball.js"></script>
+<script src="keys.js"></script>
+	<script src="enemy.js"></script>
+
+	<script type="text/javascript">
+	const AVAILABLE_KEYS =
+        [ 	Keys.KEY_W,
+            Keys.KEY_S,
+            Keys.KEY_A,
+            Keys.KEY_D
+        ];
+var _context;
+var _canvas;
+var _fortress;
+var _keyStates = {};
+var _enemy = [];
+var _backgroundImg = new Image();
+
+
+function clear() {
+	_context.clearRect(0, 0, _canvas.width, _canvas.height);
+}
+
+function init() {
+	_backgroundImg.src = "galaxy.png";
+	_canvas = document.getElementById("canvas");	
+	
+	_context = _canvas.getContext("2d");
+	_context.font = "16px arial";
+
+
+    _canvas.onkeydown = canvas_keyDown;
+    _canvas.onkeyup = canvas_keyUp;
+    _canvas.onmousemove = canvas_mousemove;
+    _canvas.onmousedown = canvas_mousedown;
+	_fortress = new Fortress(_canvas.width,_canvas.height,_context);
+	window.setInterval(update,50);
+	
+}
+
+function draw(){
+	clear();
+	_context.drawImage(_backgroundImg,0,0,_canvas.width,_canvas.height);
+	for(var i=0;i<_enemy.length;i++)
+	{
+        _enemy[i].draw();
+
+    }
+
+	_fortress.draw();
+	_context.fillText("Scores: "+_fortress.scores,800,410);
+
+}
+
+function update(){
+
+    _fortress.handleInput(_keyStates);
+    console.log();
+	if(_enemy.length < 8)
+		_enemy.push(new Enemy(_canvas.width, _canvas.height,_context));	
+
+	for(var i=0;i<_enemy.length;i++)
+    {
+        var en = _enemy[i];
+        en.update();	
+												
+		if(en.isExploded)
+		{					
+			_enemy.splice(i--,1);			
+			continue;					
+		}
+    }
+	_fortress.update(_enemy);	
+	
+	draw();
+}
+function canvas_mousemove(e){
+
+	var x = e.pageX - _canvas.offsetLeft;
+	var y = e.pageY - _canvas.offsetTop;
+	_fortress.rotateCannon(x,y);
+}
+function canvas_mousedown(e){
+	_fortress.fire();
+}
+function canvas_keyDown(e){
+	if(AVAILABLE_KEYS.indexOf(e.keyCode)!=-1)
+		_keyStates[e.keyCode] = true;
+}
+function canvas_keyUp(e){
+	if(_keyStates[e.keyCode])
+		_keyStates[e.keyCode] = false;
+}
+
+window.onload = function(){
+	init();
+}
+</script>
+</head>
+<body>
+<canvas id="canvas" width="900" height="500"
+	tabindex="1" style="border: 3px solid;cursor: crosshair" ></canvas>
+</body>
+</html>
